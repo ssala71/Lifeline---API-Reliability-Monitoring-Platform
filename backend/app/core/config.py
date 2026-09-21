@@ -7,10 +7,7 @@ class Settings(BaseSettings):
     app_name: str = "Lifeline API"
     environment: str = "development"
     frontend_url: str = "http://localhost:5173"
-    database_url: str = (
-        "postgresql+psycopg://lifeline:lifeline_password"
-        "@localhost:5432/lifeline"
-    )
+    database_url: str = "sqlite:///./lifeline.db"
 
     model_config = SettingsConfigDict(
         env_file=".env",
