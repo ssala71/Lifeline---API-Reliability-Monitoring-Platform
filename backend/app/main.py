@@ -1,18 +1,23 @@
 from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
 from app.core.exceptions import ServiceNotFoundError
+from app.db.database import Base, engine
+from app.models.Service import Service
+from app.models.HealthCheck import HealthCheck
+from app.models.Incident import Incident
 
-app = FastAPI(title=settings.PROJECT_NAME, version= settings.PROJECT_VERSION)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title=settings.app_name, version= "0.1.0")
 
 
 @app.get("/")
 async def root():
     return {
         "message": "Lifeline backend is running",
-        "enviorment": settings.enviorment,
+        "environment": settings.environment,
     }
 
 
