@@ -1,38 +1,44 @@
-import type { Service } from '../types';
+import type { HealthCheck, Incident, Service, ServiceInput } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api';
 
-export const api = {
-  async getServices(): Promise<Service[]> {
-    const res = await fetch(`${API_BASE_URL}/services`);
-    if (!res.ok) throw new Error('Failed to fetch services from server');
-    return res.json();
-  },
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: options?.body ? { 'Content-Type': 'application/json' } : undefined,
+    ...options,
+  });
 
-  async addService(service: Omit<Service, 'id' | 'status'>): Promise<Service> {
-    const res = await fetch(`${API_BASE_URL}/services`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(service),
-    });
-    if (!res.ok) throw new Error('Failed to add service');
-    return res.json();
-  },
-
-  async toggleService(id: number, enabled: boolean): Promise<Service> {
-    const res = await fetch(`${API_BASE_URL}/services/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled }),
-    });
-    if (!res.ok) throw new Error('Failed to update service');
-    return res.json();
-  },
-
-  async deleteService(id: number): Promise<void> {
-    const res = await fetch(`${API_BASE_URL}/services/${id}`, {
-      method: 'DELETE',
-    });
-    if (!res.ok) throw new Error('Failed to delete service');
+  if (!response.ok) {
+    throw new Error(`Request failed (${response.status})`);
   }
+
+  if (response.status === 204) return undefined as T;
+  return response.json() as Promise<T>;
+}
+
+export const api = {
+  getServices: () => request<Service[]>('/services'),
+
+  addService: (service: ServiceInput) =>
+    request<Service>('/services', {
+      method: 'POST',
+      body: JSON.stringify(service),
+    }),
+
+  toggleService: (id: number, enabled: boolean) =>
+    request<Service>(`/services/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
+    }),
+
+  deleteService: (id: number) =>
+    request<void>(`/services/${id}`, { method: 'DELETE' }),
+
+  runHealthCheck: (id: number) =>
+    request<HealthCheck>(`/services/${id}/check`, { method: 'POST' }),
+
+  getHistory: (id: number, limit = 20) =>
+    request<HealthCheck[]>(`/services/${id}/history?limit=${limit}`),
+
+  getIncidents: () => request<Incident[]>('/incidents'),
 };
