@@ -130,7 +130,7 @@ async def run_health_check(
 
     result = await check_service(service)
 
-    health_check = record_check(db, service, result)
+    health_check = record_check(db, service, result).health_check
 
     db.commit()
     db.refresh(health_check)

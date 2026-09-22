@@ -53,3 +53,9 @@ class Incident(Base):
         nullable=False,
         default=False
     )
+
+    recovery_alert_sent: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
+    )

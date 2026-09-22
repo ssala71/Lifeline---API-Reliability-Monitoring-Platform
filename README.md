@@ -162,12 +162,12 @@ Database migrations are not required for the first prototype. SQLite tables are 
 
 #### Background Work and Alerts
 
-* [ ] Create the scheduled-check job
-* [ ] Check only services that are enabled and due for a check
-* [ ] Prevent duplicate alerts for the same incident
-* [ ] Connect a Slack or Discord webhook
-* [ ] Send a down notification
-* [ ] Send a recovery notification
+* [x] Create the scheduled-check job
+* [x] Check only services that are enabled and due for a check
+* [x] Prevent duplicate alerts for the same incident
+* [x] Connect a Slack or Discord webhook
+* [x] Send a down notification
+* [x] Send a recovery notification
 
 #### Backend Quality
 
