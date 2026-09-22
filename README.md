@@ -116,6 +116,29 @@ This file should remain excluded from GitHub because it is generated locally.
 
 **Role: Backend developer**
 
+#### Backend Setup
+
+From the repository root:
+
+```powershell
+cd backend
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+Copy-Item .env.example .env
+uvicorn app.main:app --reload
+```
+
+The API is available at `http://localhost:8000`, with interactive docs at
+`http://localhost:8000/docs`. Set `DISCORD_WEBHOOK_URL` in `backend/.env` to
+enable Discord down and recovery notifications. Keep webhook credentials out
+of Git and rotate any webhook that has been exposed publicly.
+
+Run the backend test suite from `backend` with:
+
+```powershell
+pytest
+```
+
 #### Initial Setup
 
 * [x] Create the FastAPI project
@@ -171,13 +194,13 @@ Database migrations are not required for the first prototype. SQLite tables are 
 
 #### Backend Quality
 
-* [ ] Test successful responses
-* [ ] Test slow responses
-* [ ] Test timeouts
-* [ ] Test repeated failures
-* [ ] Test recovery behavior
-* [ ] Test incident creation and resolution
-* [ ] Document backend setup instructions
+* [x] Test successful responses
+* [x] Test slow responses
+* [x] Test timeouts
+* [x] Test repeated failures
+* [x] Test recovery behavior
+* [x] Test incident creation and resolution
+* [x] Document backend setup instructions
 
 ### Person B — ____________________
 

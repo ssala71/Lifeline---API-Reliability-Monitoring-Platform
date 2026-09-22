@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.incident  import router as incidents_router
 
 from app.core.config import settings
@@ -23,6 +24,14 @@ Base.metadata.create_all(bind=engine)
 ensure_schema_compatibility()
 
 app = FastAPI(title=settings.app_name, version= "0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.frontend_url],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(services_router)
 app.include_router(incidents_router)
