@@ -17,6 +17,9 @@ class CheckResult:
 async def check_service(service: Service) -> CheckResult:
     start_time = perf_counter()
 
+    def elapsed_ms() -> int:
+        return max(0, round((perf_counter() - start_time) * 1000))
+
     try:
         async with httpx.AsyncClient(follow_redirects=True) as client:
             response = await client.get(
@@ -24,9 +27,7 @@ async def check_service(service: Service) -> CheckResult:
                 timeout=service.timeout
             )
 
-        response_time_ms = round(
-            (perf_counter() - start_time) * 1000
-        )
+        response_time_ms = elapsed_ms()
 
         if response.status_code >= 400:
             return CheckResult(
@@ -52,7 +53,7 @@ async def check_service(service: Service) -> CheckResult:
         return CheckResult(
             status=ServiceStatus.DOWN,
             status_code=None,
-            response_time_ms=None,
+            response_time_ms=elapsed_ms(),
             error_message="Request timed out"
         )
 
@@ -60,6 +61,6 @@ async def check_service(service: Service) -> CheckResult:
         return CheckResult(
             status=ServiceStatus.DOWN,
             status_code=None,
-            response_time_ms=None,
+            response_time_ms=elapsed_ms(),
             error_message=str(error)
         )

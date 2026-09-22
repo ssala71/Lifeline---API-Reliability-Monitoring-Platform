@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from app.core.config import settings
@@ -21,6 +21,16 @@ SessionLocal = sessionmaker(
 
 class Base(DeclarativeBase):
     pass
+
+
+def ensure_schema_compatibility() -> None:
+    """Apply the small additive changes needed by local pre-migration databases."""
+    columns = {column["name"] for column in inspect(engine).get_columns("incidents")}
+    if "downtime_seconds" not in columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE incidents ADD COLUMN downtime_seconds FLOAT")
+            )
 
 
 def get_db() -> Generator[Session, None, None]:

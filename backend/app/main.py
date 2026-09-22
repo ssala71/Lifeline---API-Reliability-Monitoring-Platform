@@ -4,7 +4,7 @@ from app.api.routes.incident  import router as incidents_router
 
 from app.core.config import settings
 from app.core.exceptions import ServiceNotFoundError
-from app.db.database import Base, engine
+from app.db.database import Base, engine, ensure_schema_compatibility
 
 from app.schemas.service import (
     ServiceCreate,
@@ -19,6 +19,7 @@ from app.models.Incident import Incident
 from app.api.routes.services import router as services_router
 
 Base.metadata.create_all(bind=engine)
+ensure_schema_compatibility()
 
 app = FastAPI(title=settings.app_name, version= "0.1.0")
 
