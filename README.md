@@ -202,7 +202,7 @@ Database migrations are not required for the first prototype. SQLite tables are 
 * [x] Test incident creation and resolution
 * [x] Document backend setup instructions
 
-### Person B — ____________________
+### Person B — Thet Paing Htoo
 
 **Role: Frontend developer**
 
