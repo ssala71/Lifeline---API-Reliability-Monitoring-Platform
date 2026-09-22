@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -29,6 +29,11 @@ class Incident(Base):
 
     resolved_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
+        nullable=True
+    )
+
+    downtime_seconds: Mapped[float | None] = mapped_column(
+        Float,
         nullable=True
     )
 

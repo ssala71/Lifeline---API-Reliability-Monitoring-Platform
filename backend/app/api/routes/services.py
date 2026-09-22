@@ -2,17 +2,12 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from datetime import datetime, timezone
-
-from datetime import datetime, timezone
-
 from fastapi import Query
 
-from app.models.Service import ServiceStatus
 from app.models.HealthCheck import HealthCheck
-from app.models.Incident import Incident
 from app.schemas.healthcheck import HealthCheckResponse
 from app.services.healthchecker import check_service
+from app.services.monitoring import record_check
 
 from app.core.exceptions import ServiceNotFoundError
 from app.db.database import get_db
@@ -135,62 +130,7 @@ async def run_health_check(
 
     result = await check_service(service)
 
-    health_check = HealthCheck(
-        service_id=service.id,
-        status=result.status,
-        status_code=result.status_code,
-        response_time_ms=result.response_time_ms,
-        error_message=result.error_message,
-    )
-
-    db.add(health_check)
-    db.flush()
-
-    recent_checks = db.scalars(
-        select(HealthCheck)
-        .where(HealthCheck.service_id == service.id)
-        .order_by(HealthCheck.checked_at.desc())
-        .limit(service.failure_threshold)
-    ).all()
-
-    consecutive_failures = 0
-
-    for check in recent_checks:
-        if check.status == ServiceStatus.DOWN:
-            consecutive_failures += 1
-        else:
-            break
-
-    open_incident = db.scalar(
-        select(Incident)
-        .where(
-            Incident.service_id == service.id,
-            Incident.resolved_at.is_(None)
-        )
-    )
-
-    if result.status == ServiceStatus.DOWN:
-        if consecutive_failures >= service.failure_threshold:
-            service.current_status = ServiceStatus.DOWN
-
-            if open_incident is None:
-                db.add(
-                    Incident(
-                        service_id=service.id,
-                        failure_count=consecutive_failures,
-                        reason=result.error_message
-                    )
-                )
-            else:
-                open_incident.failure_count = consecutive_failures
-        else:
-            service.current_status = ServiceStatus.DEGRADED
-
-    else:
-        service.current_status = result.status
-
-        if open_incident is not None:
-            open_incident.resolved_at = datetime.now(timezone.utc)
+    health_check = record_check(db, service, result)
 
     db.commit()
     db.refresh(health_check)

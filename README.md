@@ -141,16 +141,16 @@ lifeline/
 
 #### Monitoring Engine
 
-- [ ] Create the HTTP health-check service using HTTPX
-- [ ] Measure response time
-- [ ] Record HTTP status codes
-- [ ] Handle timeouts and connection errors
-- [ ] Create the status enum
-- [ ] Implement `HEALTHY`, `DEGRADED`, and `DOWN` rules
-- [ ] Track consecutive failures
-- [ ] Create incidents when a service goes down
-- [ ] Close incidents when a service recovers
-- [ ] Calculate downtime
+- [x] Create the HTTP health-check service using HTTPX
+- [x] Measure response time
+- [x] Record HTTP status codes
+- [x] Handle timeouts and connection errors
+- [x] Create the status enum
+- [x] Implement `HEALTHY`, `DEGRADED`, and `DOWN` rules
+- [x] Track consecutive failures
+- [x] Create incidents when a service goes down
+- [x] Close incidents when a service recovers
+- [x] Calculate downtime
 
 #### Background Work and Alerts
 
