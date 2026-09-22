@@ -108,7 +108,7 @@ This file should remain excluded from GitHub because it is generated locally.
 | Role               | Team member    |
 | ------------------ | -------------- |
 | Backend developer  | Samuel Salazar |
-| Frontend developer |                |
+| Frontend developer | Thet Paing Htoo |
 
 ## Task Assignments
 
@@ -208,43 +208,43 @@ Database migrations are not required for the first prototype. SQLite tables are 
 
 #### Initial Setup
 
-* [ ] Create the React and Vite frontend
-* [ ] Create the initial page layout
-* [ ] Create the frontend API service file
-* [ ] Add frontend environment-variable support
+* [x] Create the React and Vite frontend
+* [x] Create the initial page layout
+* [x] Create the frontend API service file
+* [x] Add frontend environment-variable support
 
 #### Service Management Interface
 
-* [ ] Create the add-service form
-* [ ] Add fields for service name and URL
-* [ ] Add fields for interval, timeout, and slow-response limits
-* [ ] Add input validation
-* [ ] Display the list of monitored services
-* [ ] Add enable, disable, and delete actions
+* [x] Create the add-service form
+* [x] Add fields for service name and URL
+* [x] Add fields for interval, timeout, and slow-response limits
+* [x] Add input validation
+* [x] Display the list of monitored services
+* [x] Add enable, disable, and delete actions
 
 #### Dashboard
 
-* [ ] Create healthy, degraded, down, and unknown status cards
-* [ ] Display the last checked time
-* [ ] Display response time
-* [ ] Display HTTP status code
-* [ ] Display total service counters
-* [ ] Display recent incidents
-* [ ] Display active incidents
-* [ ] Add response-time charts
-* [ ] Add service history views
-* [ ] Display downtime duration after recovery
+* [x] Create healthy, degraded, down, and unknown status cards
+* [x] Display the last checked time
+* [x] Display response time
+* [x] Display HTTP status code
+* [x] Display total service counters
+* [x] Display recent incidents
+* [x] Display active incidents
+* [x] Add response-time charts
+* [x] Add service history views
+* [x] Display downtime duration after recovery
 
 #### Frontend Quality
 
-* [ ] Connect the dashboard to the FastAPI routes
-* [ ] Add loading states
-* [ ] Add backend error messages
-* [ ] Add empty-state messages
-* [ ] Make the dashboard readable on different screen sizes
-* [ ] Test adding and deleting services
-* [ ] Test each service status display
-* [ ] Document frontend setup instructions
+* [x] Connect the dashboard to the FastAPI routes
+* [x] Add loading states
+* [x] Add backend error messages
+* [x] Add empty-state messages
+* [x] Make the dashboard readable on different screen sizes
+* [x] Test adding and deleting services
+* [x] Test each service status display
+* [x] Document frontend setup instructions
 
 ## API Contract
 
