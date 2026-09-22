@@ -138,14 +138,14 @@ Database migrations are not required for the first prototype. SQLite tables are 
 
 #### API Routes
 
-* [ ] Create `POST /api/services`
-* [ ] Create `GET /api/services`
-* [ ] Create `GET /api/services/{id}`
-* [ ] Create `PATCH /api/services/{id}`
-* [ ] Create `DELETE /api/services/{id}`
-* [ ] Create `POST /api/services/{id}/check`
-* [ ] Create `GET /api/services/{id}/history`
-* [ ] Create `GET /api/incidents`
+* [x] Create `POST /api/services`
+* [x] Create `GET /api/services`
+* [x] Create `GET /api/services/{id}`
+* [x] Create `PATCH /api/services/{id}`
+* [x] Create `DELETE /api/services/{id}`
+* [x] Create `POST /api/services/{id}/check`
+* [x] Create `GET /api/services/{id}/history`
+* [x] Create `GET /api/incidents`
 
 #### Monitoring Engine
 
