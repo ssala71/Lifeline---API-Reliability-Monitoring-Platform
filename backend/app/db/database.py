@@ -26,10 +26,15 @@ class Base(DeclarativeBase):
 def ensure_schema_compatibility() -> None:
     """Apply the small additive changes needed by local pre-migration databases."""
     columns = {column["name"] for column in inspect(engine).get_columns("incidents")}
+    missing_columns = []
     if "downtime_seconds" not in columns:
+        missing_columns.append("downtime_seconds FLOAT")
+    if "recovery_alert_sent" not in columns:
+        missing_columns.append("recovery_alert_sent BOOLEAN NOT NULL DEFAULT 0")
+    for column_definition in missing_columns:
         with engine.begin() as connection:
             connection.execute(
-                text("ALTER TABLE incidents ADD COLUMN downtime_seconds FLOAT")
+                text(f"ALTER TABLE incidents ADD COLUMN {column_definition}")
             )
 
 

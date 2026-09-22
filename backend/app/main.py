@@ -17,6 +17,7 @@ from app.models.HealthCheck import HealthCheck
 from app.models.Incident import Incident
 
 from app.api.routes.services import router as services_router
+from app.services.scheduler import create_scheduler
 
 Base.metadata.create_all(bind=engine)
 ensure_schema_compatibility()
@@ -25,6 +26,18 @@ app = FastAPI(title=settings.app_name, version= "0.1.0")
 
 app.include_router(services_router)
 app.include_router(incidents_router)
+
+scheduler = create_scheduler()
+
+
+@app.on_event("startup")
+async def start_scheduler():
+    scheduler.start()
+
+
+@app.on_event("shutdown")
+async def stop_scheduler():
+    scheduler.shutdown(wait=False)
 
 @app.get("/")
 async def root():

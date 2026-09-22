@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     frontend_url: str = "http://localhost:5173"
     database_url: str = "sqlite:///./lifeline.db"
+    discord_webhook_url: str | None = None
+    scheduler_poll_interval_seconds: int = 10
 
     model_config = SettingsConfigDict(
         env_file=".env",

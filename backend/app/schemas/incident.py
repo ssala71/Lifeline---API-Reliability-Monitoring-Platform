@@ -12,5 +12,6 @@ class IncidentResponse(BaseModel):
     failure_count: int
     reason: str | None = None
     alert_sent: bool
+    recovery_alert_sent: bool
 
     model_config = ConfigDict(from_attributes=True)
