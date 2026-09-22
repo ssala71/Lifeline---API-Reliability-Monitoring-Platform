@@ -10,7 +10,9 @@ export const mockServices: Service[] = [
     slow_threshold: 500,
     failure_threshold: 3,
     enabled: true,
-    status: 'HEALTHY'
+    current_status: 'HEALTHY',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: 2,
@@ -21,7 +23,9 @@ export const mockServices: Service[] = [
     slow_threshold: 300,
     failure_threshold: 2,
     enabled: true,
-    status: 'DEGRADED'
+    current_status: 'DEGRADED',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: 3,
@@ -32,7 +36,9 @@ export const mockServices: Service[] = [
     slow_threshold: 1000,
     failure_threshold: 3,
     enabled: true,
-    status: 'DOWN'
+    current_status: 'DOWN',
+    created_at: '',
+    updated_at: ''
   },
   {
     id: 4,
@@ -43,6 +49,8 @@ export const mockServices: Service[] = [
     slow_threshold: 800,
     failure_threshold: 1,
     enabled: false,
-    status: 'UNKNOWN'
+    current_status: 'UNKNOWN',
+    created_at: '',
+    updated_at: ''
   }
 ];

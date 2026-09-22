@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { api } from '../services/api';
 import AddServiceForm from '../components/AddServiceForm';
 import ServiceMetrics from '../components/ServiceMetrics';
-import type { Service } from '../types';
+import type { HealthCheck, Incident, Service, ServiceInput } from '../types';
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -37,6 +37,10 @@ const fontSans =
   "-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, sans-serif";
 const fontMono =
   "'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace";
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
 
 const styles: Record<string, React.CSSProperties> = {
   page: {
@@ -233,41 +237,62 @@ export default function Dashboard() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [latestChecks, setLatestChecks] = useState<Record<number, HealthCheck>>({});
+  const [serviceHistory, setServiceHistory] = useState<Record<number, HealthCheck[]>>({});
+  const [checkingId, setCheckingId] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
 
-  const fetchServices = async () => {
-    setLoading(true);
+  const fetchDashboard = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError(null);
     try {
-      const data = await api.getServices();
-      setServices(data);
-    } catch (err: any) {
-      setError(err.message || 'Could not connect to the backend server.');
+      const [serviceData, incidentData] = await Promise.all([
+        api.getServices(),
+        api.getIncidents(),
+      ]);
+      const history = await Promise.all(
+        serviceData.map(async service => {
+          const checks = await api.getHistory(service.id, 20);
+          return [service.id, checks] as const;
+        }),
+      );
+      setServices(serviceData);
+      setIncidents(incidentData);
+      setServiceHistory(Object.fromEntries(history));
+      setLatestChecks(Object.fromEntries(history.filter(([, checks]) => checks[0]).map(([id, checks]) => [id, checks[0]])));
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Could not connect to the backend server.'));
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchServices();
   }, []);
 
-  const handleAddNewService = async (newServiceData: Omit<Service, 'id' | 'status'>) => {
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => void fetchDashboard(), 0);
+    const refreshTimer = window.setInterval(() => fetchDashboard(false), 15000);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.clearInterval(refreshTimer);
+    };
+  }, [fetchDashboard]);
+
+  const handleAddNewService = async (newServiceData: ServiceInput) => {
     try {
-      const created = await api.addService(newServiceData);
-      setServices(prev => [created, ...prev]);
+      await api.addService(newServiceData);
+      await fetchDashboard(false);
       setShowAddForm(false);
-    } catch (err: any) {
-      alert(`Error adding service: ${err.message}`);
+    } catch (err: unknown) {
+      alert(`Error adding service: ${errorMessage(err, 'Unable to add service.')}`);
     }
   };
 
   const handleToggleEnable = async (id: number, currentStatus: boolean) => {
     try {
       const updated = await api.toggleService(id, !currentStatus);
-      setServices(services.map(s => (s.id === id ? updated : s)));
-    } catch (err: any) {
-      alert(`Error toggling service: ${err.message}`);
+      setServices(current => current.map(s => (s.id === id ? updated : s)));
+    } catch (err: unknown) {
+      alert(`Error toggling service: ${errorMessage(err, 'Unable to update service.')}`);
     }
   };
 
@@ -275,13 +300,26 @@ export default function Dashboard() {
     if (!confirm('Are you sure you want to delete this service?')) return;
     try {
       await api.deleteService(id);
-      setServices(services.filter(s => s.id !== id));
-    } catch (err: any) {
-      alert(`Error deleting service: ${err.message}`);
+      setServices(current => current.filter(s => s.id !== id));
+      setIncidents(current => current.filter(incident => incident.service_id !== id));
+    } catch (err: unknown) {
+      alert(`Error deleting service: ${errorMessage(err, 'Unable to delete service.')}`);
     }
   };
 
-  const anyDown = services.some(s => s.enabled && s.status === 'DOWN');
+  const handleCheck = async (id: number) => {
+    setCheckingId(id);
+    try {
+      await api.runHealthCheck(id);
+      await fetchDashboard(false);
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'The health check failed.'));
+    } finally {
+      setCheckingId(null);
+    }
+  };
+
+  const anyDown = services.some(s => s.enabled && s.current_status === 'DOWN');
 
   return (
     <div style={styles.page}>
@@ -309,7 +347,7 @@ export default function Dashboard() {
           <div style={styles.errorBanner}>
             <span>{error}</span>
             <button
-              onClick={fetchServices}
+              onClick={() => fetchDashboard()}
               style={styles.retryButton}
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(239, 100, 97, 0.12)')}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
@@ -319,7 +357,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <ServiceMetrics services={services} />
+        <ServiceMetrics services={services} incidents={incidents} latestChecks={latestChecks} />
 
         <div style={styles.sectionHeader}>
           <h2 style={styles.sectionTitle}>Monitored services</h2>
@@ -351,7 +389,7 @@ export default function Dashboard() {
         ) : (
           <div style={styles.grid}>
             {services.map(service => {
-              const meta = statusMeta[service.status] ?? { color: colors.unknown, label: service.status };
+              const meta = statusMeta[service.current_status] ?? { color: colors.unknown, label: service.current_status };
               return (
                 <div key={service.id} style={{ ...styles.card, opacity: service.enabled ? 1 : 0.55 }}>
                   <span style={{ ...styles.cardAccent, backgroundColor: meta.color }} />
@@ -368,7 +406,36 @@ export default function Dashboard() {
                     <span style={{ color: meta.color, fontWeight: 600 }}>{meta.label}</span>
                   </div>
 
+                  {latestChecks[service.id] && (
+                    <div style={{ color: colors.textMuted, fontSize: 12, marginTop: 10 }}>
+                      {latestChecks[service.id].response_time_ms ?? '—'} ms · HTTP {latestChecks[service.id].status_code ?? '—'} · {new Date(latestChecks[service.id].checked_at).toLocaleString()}
+                    </div>
+                  )}
+
+                  {(serviceHistory[service.id]?.length ?? 0) > 0 && (
+                    <details style={{ color: colors.textMuted, fontSize: 12, marginTop: 10 }}>
+                      <summary style={{ cursor: 'pointer', color: colors.accent }}>
+                        View recent checks ({serviceHistory[service.id].length})
+                      </summary>
+                      <div style={{ display: 'grid', gap: 5, marginTop: 8 }}>
+                        {serviceHistory[service.id].slice(0, 5).map(check => (
+                          <div key={check.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                            <span>{new Date(check.checked_at).toLocaleString()}</span>
+                            <span>{check.status} · {check.response_time_ms ?? '—'} ms</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+
                   <div style={styles.actions}>
+                    <button
+                      onClick={() => handleCheck(service.id)}
+                      disabled={checkingId === service.id || !service.enabled}
+                      style={{ ...styles.toggleBtn, color: colors.accent, opacity: service.enabled ? 1 : 0.5 }}
+                    >
+                      {checkingId === service.id ? 'Checking…' : 'Check now'}
+                    </button>
                     <button
                       onClick={() => handleToggleEnable(service.id, service.enabled)}
                       style={styles.toggleBtn}

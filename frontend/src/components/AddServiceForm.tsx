@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { Service } from '../types';
+import type { ServiceInput } from '../types';
 
 interface Props {
-  onAddService: (service: Omit<Service, 'id' | 'status'>) => void;
+  onAddService: (service: ServiceInput) => void;
 }
 
 export default function AddServiceForm({ onAddService }: Props) {
@@ -25,8 +25,8 @@ export default function AddServiceForm({ onAddService }: Props) {
       return;
     }
 
-    if (formData.check_interval <= 0 || formData.timeout <= 0) {
-      alert('Interval and Timeout must be greater than 0.');
+    if (formData.check_interval < 10 || formData.timeout < 1 || formData.slow_threshold < 1 || formData.failure_threshold < 1) {
+      alert('Interval must be at least 10 seconds; all other numeric values must be greater than 0.');
       return;
     }
 
@@ -57,7 +57,7 @@ export default function AddServiceForm({ onAddService }: Props) {
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Check Interval (sec)</label>
-          <input required min="1" type="number" name="check_interval" value={formData.check_interval} onChange={handleChange} style={{ width: '90%', padding: '8px' }} />
+          <input required min="10" type="number" name="check_interval" value={formData.check_interval} onChange={handleChange} style={{ width: '90%', padding: '8px' }} />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Timeout (sec)</label>
