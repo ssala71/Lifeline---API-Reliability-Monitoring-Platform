@@ -28,7 +28,7 @@ async def send_discord_alert(
 
     payload = {
         "content": content,
-        "allowed_mentions": {"parse": ["here"]},
+        "allowed_mentions": {"parse": ["everyone"]},
         "embeds": [{
             "title": title,
             "description": description,
