@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from fastapi import Query
 
 from app.models.HealthCheck import HealthCheck
+from app.models.Incident import Incident
 from app.schemas.healthcheck import HealthCheckResponse
 from app.services.healthchecker import check_service
 from app.services.monitoring import record_check
@@ -114,6 +115,8 @@ def delete_service(
 ):
     service = find_service(service_id, db)
 
+    db.execute(delete(Incident).where(Incident.service_id == service_id))
+    db.execute(delete(HealthCheck).where(HealthCheck.service_id == service_id))
     db.delete(service)
     db.commit()
 
