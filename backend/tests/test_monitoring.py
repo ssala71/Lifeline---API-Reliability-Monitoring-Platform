@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
+from app.api.routes.services import delete_service
 from app.db.database import Base
 from app.models.HealthCheck import HealthCheck
 from app.models.Incident import Incident
@@ -96,3 +97,17 @@ def test_health_checks_are_persisted_for_history():
         assert checks[0].status_code == 200
         assert checks[0].response_time_ms == 20
         assert checks[0].checked_at.tzinfo in (None, timezone.utc)
+
+
+def test_deleting_service_removes_incidents_and_health_checks():
+    engine = make_database()
+    with Session(engine) as db:
+        monitored_service = make_service(db, failure_threshold=1)
+        record_check(db, monitored_service, down_result())
+        db.commit()
+
+        delete_service(monitored_service.id, db)
+
+        assert db.get(Service, monitored_service.id) is None
+        assert db.scalars(select(Incident)).all() == []
+        assert db.scalars(select(HealthCheck)).all() == []
