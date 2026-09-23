@@ -23,7 +23,8 @@ async def send_discord_alert(
         description = f"{service.name} is responding normally again."
         recovered_at = format_timestamp(incident.resolved_at)
         content = (
-            f"@here ✅ Lifeline recovery\n"
+            f"Lifeline recovery\n"
+            f"@here\n"
             f"**Service:** {service.name}\n"
             f"**Request:** {request_method} {service.url}\n"
             f"**Went down:** {started_at}\n"
@@ -41,7 +42,8 @@ async def send_discord_alert(
         title = f"🚨 {service.name} is down"
         description = incident.reason or "The service failed its health check."
         content = (
-            f"@here 🚨 Lifeline outage\n"
+            f"Lifeline outage\n"
+            f"@here\n"
             f"**Service:** {service.name}\n"
             f"**Request:** {request_method} {service.url}\n"
             f"**Went down:** {started_at}\n"
