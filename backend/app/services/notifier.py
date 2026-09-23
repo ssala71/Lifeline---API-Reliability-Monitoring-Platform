@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import httpx
 
 from app.core.config import settings
@@ -13,18 +15,46 @@ async def send_discord_alert(
     if not settings.discord_webhook_url:
         return False
 
+    request_method = "GET"
+    started_at = format_timestamp(incident.started_at)
+
     if recovered:
         title = f"✅ {service.name} recovered"
         description = f"{service.name} is responding normally again."
-        content = f"@here ✅ {service.name} recovered."
+        recovered_at = format_timestamp(incident.resolved_at)
+        content = (
+            f"@here ✅ Lifeline recovery\n"
+            f"**Service:** {service.name}\n"
+            f"**Request:** {request_method} {service.url}\n"
+            f"**Went down:** {started_at}\n"
+            f"**Recovered:** {recovered_at}\n"
+            f"**Downtime:** {format_downtime(incident.downtime_seconds)}"
+        )
         color = 5763719
-        fields = [{"name": "Downtime", "value": format_downtime(incident.downtime_seconds), "inline": True}]
+        fields = [
+            {"name": "Request type", "value": request_method, "inline": True},
+            {"name": "Went down", "value": started_at, "inline": True},
+            {"name": "Recovered", "value": recovered_at, "inline": True},
+            {"name": "Downtime", "value": format_downtime(incident.downtime_seconds), "inline": True},
+        ]
     else:
         title = f"🚨 {service.name} is down"
         description = incident.reason or "The service failed its health check."
-        content = f"@here 🚨 {service.name} is down."
+        content = (
+            f"@here 🚨 Lifeline outage\n"
+            f"**Service:** {service.name}\n"
+            f"**Request:** {request_method} {service.url}\n"
+            f"**Went down:** {started_at}\n"
+            f"**Reason:** {description}\n"
+            f"**Failures:** {incident.failure_count}"
+        )
         color = 15548997
-        fields = [{"name": "Failures", "value": str(incident.failure_count), "inline": True}]
+        fields = [
+            {"name": "Request type", "value": request_method, "inline": True},
+            {"name": "Went down", "value": started_at, "inline": True},
+            {"name": "Reason", "value": description, "inline": False},
+            {"name": "Failures", "value": str(incident.failure_count), "inline": True},
+        ]
 
     payload = {
         "content": content,
@@ -57,3 +87,11 @@ def format_downtime(seconds: float | None) -> str:
     if minutes:
         return f"{minutes}m {remaining_seconds}s"
     return f"{remaining_seconds}s"
+
+
+def format_timestamp(value: datetime | None) -> str:
+    if value is None:
+        return "Unknown"
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
