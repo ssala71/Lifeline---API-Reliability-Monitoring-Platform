@@ -16,15 +16,19 @@ async def send_discord_alert(
     if recovered:
         title = f"✅ {service.name} recovered"
         description = f"{service.name} is responding normally again."
+        content = f"@here ✅ {service.name} recovered."
         color = 5763719
         fields = [{"name": "Downtime", "value": format_downtime(incident.downtime_seconds), "inline": True}]
     else:
         title = f"🚨 {service.name} is down"
         description = incident.reason or "The service failed its health check."
+        content = f"@here 🚨 {service.name} is down."
         color = 15548997
         fields = [{"name": "Failures", "value": str(incident.failure_count), "inline": True}]
 
     payload = {
+        "content": content,
+        "allowed_mentions": {"parse": ["here"]},
         "embeds": [{
             "title": title,
             "description": description,
